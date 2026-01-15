@@ -59,3 +59,27 @@ The CSV file contains the following columns:
 - Each exchange has different metadata keys for ST/monitoring flags; see `scan.py` for the exact rules.
 - HTX (Huobi) uses a direct REST endpoint instead of CCXT.
 - Rate limiting is enabled for CCXT clients.
+
+## Building a macOS executable
+
+Create a standalone macOS binary with `pyinstaller` (must be run on macOS):
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+pip install pyinstaller
+```
+
+Build the executable from the repository root:
+
+```bash
+PYTHONPATH=src pyinstaller --name st-tracker --onefile --console scripts/run_scan.py
+```
+
+The compiled binary will be available at `dist/st-tracker`. Run it from the folder where you
+want the `st_markets.csv` report to be generated:
+
+```bash
+./dist/st-tracker
+```
