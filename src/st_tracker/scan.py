@@ -40,7 +40,7 @@ def scan_bybit(rows: List[Dict[str, str]]) -> None:
 # =========================
 
 def scan_gateio(rows: List[Dict[str, str]]) -> None:
-    ex = ccxt.gateio({"enableRateLimit": True})
+    ex = ccxt.gate({"enableRateLimit": True})  # ccxt renamed gateio -> gate
     markets = ex.load_markets()
 
     for market in markets.values():
@@ -115,11 +115,19 @@ def scan_htx(rows: List[Dict[str, str]]) -> None:
 def main(output_csv: str = OUTPUT_CSV) -> None:
     rows: List[Dict[str, str]] = []
 
-    scan_bybit(rows)
-    scan_gateio(rows)
-    scan_mexc(rows)
-    scan_kucoin(rows)
-    scan_htx(rows)
+    # One exchange's failure (API hiccup, ccxt metadata change) must not abort the whole scan
+    # — critical once this feeds Pavel's autonomous drafter.
+    for name, fn in (
+        ("bybit", scan_bybit),
+        ("gateio", scan_gateio),
+        ("mexc", scan_mexc),
+        ("kucoin", scan_kucoin),
+        ("htx", scan_htx),
+    ):
+        try:
+            fn(rows)
+        except Exception as exc:
+            print(f"[st-tracker] {name} scan failed: {exc}")
 
     with open(output_csv, "w", newline="") as handle:
         writer = csv.DictWriter(
